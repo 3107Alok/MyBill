@@ -286,14 +286,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_beep:
+  flutter_beep_plus:
     dependency: "direct main"
     description:
-      name: flutter_beep
-      sha256: "299bec757177afad07d27126155e0cf3167160ccf2a003645cd71ac014ccd541"
+      name: flutter_beep_plus
+      sha256: "565b5c2c7aeb94c5202406416473d0384b3510734787c74d235d4f8eb1468ba2"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "0.0.3"
   flutter_bloc:
     dependency: "direct main"
     description:
