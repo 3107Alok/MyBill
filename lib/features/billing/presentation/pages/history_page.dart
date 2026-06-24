@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/utils/pdf_helper.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/bill.dart';
 import '../bloc/billing_bloc.dart';
 import '../../../shop/presentation/bloc/shop_bloc.dart';
@@ -29,129 +28,120 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Sales History',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 28, color: Colors.white),
+          icon: const Icon(Icons.chevron_left, size: 28),
           onPressed: () => context.pop(),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0F172A), Color(0xFF1E293B)], // Premium dark slate gradient background
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: BlocBuilder<BillingBloc, BillingState>(
-            builder: (context, billingState) {
-              final bills = billingState.billHistory;
-              
-              // Filter based on search query
-              final filteredBills = bills.where((bill) {
-                final query = _searchQuery.toLowerCase();
-                final matchesId = bill.id.toLowerCase().contains(query);
-                final matchesItemName = bill.items.any((item) =>
-                    item.productName.toLowerCase().contains(query));
-                return matchesId || matchesItemName;
-              }).toList();
+      body: SafeArea(
+        child: BlocBuilder<BillingBloc, BillingState>(
+          builder: (context, billingState) {
+            final bills = billingState.billHistory;
+            
+            // Filter based on search query
+            final filteredBills = bills.where((bill) {
+              final query = _searchQuery.toLowerCase();
+              final matchesId = bill.id.toLowerCase().contains(query);
+              final matchesItemName = bill.items.any((item) =>
+                  item.productName.toLowerCase().contains(query));
+              return matchesId || matchesItemName;
+            }).toList();
 
-              // Calculate stats
-              final now = DateTime.now();
-              final todayBills = bills.where((b) =>
-                  b.dateTime.year == now.year &&
-                  b.dateTime.month == now.month &&
-                  b.dateTime.day == now.day);
-              final todaySales = todayBills.fold<double>(0.0, (sum, b) => sum + b.totalAmount);
+            // Calculate stats
+            final now = DateTime.now();
+            final todayBills = bills.where((b) =>
+                b.dateTime.year == now.year &&
+                b.dateTime.month == now.month &&
+                b.dateTime.day == now.day);
+            final todaySales = todayBills.fold<double>(0.0, (sum, b) => sum + b.totalAmount);
 
-              final thirtyDaysAgo = now.subtract(const Duration(days: 30));
-              final monthlyBills = bills.where((b) => b.dateTime.isAfter(thirtyDaysAgo));
-              final monthlySales = monthlyBills.fold<double>(0.0, (sum, b) => sum + b.totalAmount);
+            final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+            final monthlyBills = bills.where((b) => b.dateTime.isAfter(thirtyDaysAgo));
+            final monthlySales = monthlyBills.fold<double>(0.0, (sum, b) => sum + b.totalAmount);
 
-              return Column(
-                children: [
-                  const SizedBox(height: 16),
-                  
-                  // Summary Stats Row (Glassmorphic)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            title: "Today's Sales",
-                            value: '₹${todaySales.toStringAsFixed(1)}',
-                            icon: Icons.today,
-                            glowColor: Colors.blueAccent,
-                          ),
+            return Column(
+              children: [
+                const SizedBox(height: 16),
+                
+                // Summary Stats Row (Clean light cards)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          title: "Today's Sales",
+                          value: '₹${todaySales.toStringAsFixed(1)}',
+                          icon: Icons.today,
+                          accentColor: Theme.of(context).primaryColor,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatCard(
-                            title: "30-Day Sales",
-                            value: '₹${monthlySales.toStringAsFixed(1)}',
-                            icon: Icons.calendar_month,
-                            glowColor: Colors.purpleAccent,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // Search Bar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: GlassContainer(
-                      borderRadius: 12,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextField(
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Search by Bill ID or Item Name...',
-                          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-                          prefixIcon: const Icon(Icons.search, color: Colors.white70),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          fillColor: Colors.transparent,
-                        ),
-                        onChanged: (val) {
-                          setState(() {
-                            _searchQuery = val;
-                          });
-                        },
                       ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          title: "30-Day Sales",
+                          value: '₹${monthlySales.toStringAsFixed(1)}',
+                          icon: Icons.calendar_month,
+                          accentColor: Colors.blueAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Clean Search Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: GlassContainer(
+                    borderRadius: 12,
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey[200]!),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      style: const TextStyle(color: Colors.black87),
+                      decoration: InputDecoration(
+                        hintText: 'Search by Bill ID or Item Name...',
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        fillColor: Colors.transparent,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onChanged: (val) {
+                        setState(() {
+                          _searchQuery = val;
+                        });
+                      },
                     ),
                   ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // History List
-                  Expanded(
-                    child: filteredBills.isEmpty
-                        ? _buildEmptyState()
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
-                            itemCount: filteredBills.length,
-                            itemBuilder: (context, idx) {
-                              final bill = filteredBills[idx];
-                              return _buildBillCard(bill);
-                            },
-                          ),
-                  ),
-                ],
-              );
-            },
-          ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // History List
+                Expanded(
+                  child: filteredBills.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.builder(
+                          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
+                          itemCount: filteredBills.length,
+                          itemBuilder: (context, idx) {
+                            final bill = filteredBills[idx];
+                            return _buildBillCard(bill);
+                          },
+                        ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -161,10 +151,12 @@ class _HistoryPageState extends State<HistoryPage> {
     required String title,
     required String value,
     required IconData icon,
-    required Color glowColor,
+    required Color accentColor,
   }) {
     return GlassContainer(
       borderRadius: 16,
+      color: Colors.white,
+      border: Border.all(color: Colors.grey[200]!),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,11 +168,11 @@ class _HistoryPageState extends State<HistoryPage> {
                 title,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: Colors.grey[500],
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Icon(icon, color: glowColor, size: 20),
+              Icon(icon, color: accentColor, size: 20),
             ],
           ),
           const SizedBox(height: 12),
@@ -189,7 +181,7 @@ class _HistoryPageState extends State<HistoryPage> {
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w900,
-              color: Colors.white,
+              color: Colors.black87,
             ),
           ),
         ],
@@ -202,14 +194,14 @@ class _HistoryPageState extends State<HistoryPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.history_toggle_off, size: 64, color: Colors.white.withValues(alpha: 0.3)),
+          Icon(Icons.history_toggle_off, size: 64, color: Colors.grey[300]),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'No transactions found',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white.withValues(alpha: 0.7),
+              color: Colors.black54,
             ),
           ),
           const SizedBox(height: 8),
@@ -217,7 +209,7 @@ class _HistoryPageState extends State<HistoryPage> {
             _searchQuery.isNotEmpty ? 'Try checking spelling or ID' : 'Completed sales will appear here.',
             style: TextStyle(
               fontSize: 12,
-              color: Colors.white.withValues(alpha: 0.4),
+              color: Colors.grey[400],
             ),
           ),
         ],
@@ -236,6 +228,8 @@ class _HistoryPageState extends State<HistoryPage> {
         borderRadius: BorderRadius.circular(16),
         child: GlassContainer(
           borderRadius: 16,
+          color: Colors.white,
+          border: Border.all(color: Colors.grey[200]!),
           padding: const EdgeInsets.all(16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -247,7 +241,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     Text(
                       'Bill #${bill.id.substring(0, 8).toUpperCase()}',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black87,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -256,7 +250,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     Text(
                       '${bill.items.length} items  •  $timeStr, $dateStr',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: Colors.grey[500],
                         fontSize: 11,
                       ),
                     ),
@@ -268,8 +262,8 @@ class _HistoryPageState extends State<HistoryPage> {
                 children: [
                   Text(
                     '₹${bill.totalAmount.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: Colors.greenAccent,
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColor,
                       fontWeight: FontWeight.w900,
                       fontSize: 16,
                     ),
@@ -280,7 +274,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       Text(
                         'Details',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
+                          color: Colors.grey[600],
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                         ),
@@ -289,7 +283,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       Icon(
                         Icons.chevron_right,
                         size: 14,
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: Colors.grey[600],
                       ),
                     ],
                   ),
@@ -328,9 +322,9 @@ class _HistoryPageState extends State<HistoryPage> {
           builder: (_, controller) {
             return GlassContainer(
               borderRadius: 24,
-              blur: 25,
-              color: const Color(0xEC1E293B),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+              blur: 20,
+              color: const Color(0xFAFAFAFA), // Crisp clean off-white background
+              border: Border.all(color: Colors.grey[200]!),
               child: Column(
                 children: [
                   // Drag handle
@@ -339,7 +333,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     height: 4,
                     margin: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -355,7 +349,7 @@ class _HistoryPageState extends State<HistoryPage> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: Colors.black87,
                           ),
                         ),
                         IconButton(
@@ -366,7 +360,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                   ),
                   
-                  const Divider(color: Colors.white24),
+                  Divider(color: Colors.grey[200]),
                   
                   // Receipt Detail List
                   Expanded(
@@ -378,7 +372,11 @@ class _HistoryPageState extends State<HistoryPage> {
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
+                            border: Border.all(color: Colors.grey[200]!),
                             borderRadius: BorderRadius.circular(16),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))
+                            ],
                           ),
                           padding: const EdgeInsets.all(20),
                           child: Column(
@@ -492,21 +490,20 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                   ),
                   
-                  // Action Buttons Footer
+                  // Action Buttons Footer (Light styling)
                   Container(
                     padding: const EdgeInsets.all(20.0),
                     decoration: BoxDecoration(
-                      color: Colors.black26,
-                      border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                      color: Colors.white,
+                      border: Border(top: BorderSide(color: Colors.grey[200]!)),
                     ),
                     child: Row(
                       children: [
                         Expanded(
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white10,
-                              foregroundColor: Colors.white,
-                              side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.black87,
+                              side: BorderSide(color: Colors.grey[300]!),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
@@ -527,7 +524,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         Expanded(
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
+                              backgroundColor: Theme.of(ctx).primaryColor,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -569,17 +566,17 @@ class _HistoryPageState extends State<HistoryPage> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Delete Bill', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: const Text('Delete Bill', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
           content: Text(
             'Are you sure you want to delete Bill #${bill.id.substring(0, 8).toUpperCase()}? This action cannot be undone.',
-            style: const TextStyle(color: Colors.white70),
+            style: const TextStyle(color: Colors.black54),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              child: const Text('Cancel', style: TextStyle(color: Colors.black38)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(

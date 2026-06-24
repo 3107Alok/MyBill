@@ -45,6 +45,7 @@ dependencies:
   pdf: ^3.12.0
   printing: ^5.14.3
   barcode: ^2.2.9
+  flutter_beep: ^1.0.0
 
 dev_dependencies:
   flutter_test:
